@@ -29,6 +29,12 @@ export default class RegisterController {
         'A user must have at least name and password defined',
       );
     }
+    const regEx = /^[0-9a-zA-Z]+$/;
+    if (!registerDto.userName.match(regEx)) {
+      throw new BadRequestException(
+        'The password must be alphanumeric',
+      );
+    }
     if (registerDto.password !== registerDto.confirmPassword) {
       throw new BadRequestException(
         'The password need to be the same than confirm password',

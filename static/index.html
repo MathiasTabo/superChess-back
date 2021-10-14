@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Websockets Client</title>
+    <style>
+        .chess-board { border-spacing: 0; border-collapse: collapse; }
+        .chess-board th { padding: .5em; }
+        .chess-board td { border: 1px solid; width: 3em; height: 3em; }
+        .chess-board .light { background: #eee; }
+        .chess-board .dark { background: #000; }
+    </style>
+    <link href="/styles.css" rel="stylesheet">
+    <link href="https://unpkg.com/vue-simple-notify/dist/vue-simple-notify.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/vue-simple-notify/dist/vue-simple-notify.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src>
+        function test(x, y) {
+            console.log("x = " + x + " Y = " + y);
+        }
+    </script>
+</head>
+
+<body>
+    <main id="v-app">
+        <section class="alerts">
+            <alerts-component :items="alerts"></alerts-component>
+        </section>
+        <section class="chat">
+            <h1>Websockets Tester</h1>
+            <form>
+                <input v-model="text" type="text" />
+                <button type="submit" @click.prevent="sendChatMessage(0, 0)">Send</button>
+            </form>
+            <!-- Tabs -->
+            <div class="tab-row">
+                <button class="tab-btn" :class="{ active: activeRoom == 'General' }"
+                    @click="activeRoom = 'general'">General</button>
+                <button class="tab-btn" :class="{ active: activeRoom == 'test' }"
+                    @click="activeRoom = 'typescript'">TypeScript</button>
+                <button class="tab-btn" :class="{ active: activeRoom == '61678d970b03149d4ca9dcdd' }"
+                    @click="activeRoom = '61678d970b03149d4ca9dcdd'">61678d970b03149d4ca9dcdd</button>
+            </div>
+            <div class="tab-row">
+                Status: {{ isMemberOfActiveRoom ? 'Joined' : 'NOT Joined' }} <button @click="toggleRoomMembership()">{{
+                    isMemberOfActiveRoom ? 'Leave' : 'Join' }}</button>
+            </div>
+            <p>
+            <ul>
+                <li v-for="msg of messages[activeRoom]">
+                    <strong>{{ msg.sender }}:</strong> {{ msg.message }}
+                </li>
+            </ul>
+            </p>
+            <!-- /Tabs -->
+        </section>
+
+        <section class="board">
+            <table class="chess-board">
+                <tbody>
+                    <tr>
+                        <th></th>
+                        <th>a</th>
+                        <th>b</th>
+                        <th>c</th>
+                        <th>d</th>
+                        <th>e</th>
+                        <th>f</th>
+                        <th>g</th>
+                        <th>h</th>
+                    </tr>
+                    <tr>
+                        <th>8</th>
+                        <td @click.prevent="sendChatMessage(0, 0)" class="light"></td>
+                        <td @click.prevent="sendChatMessage(1, 0)" class="dark"></td>
+                        <td @click.prevent="sendChatMessage(2, 0)" class="light"></td>
+                        <td @click.prevent="sendChatMessage(3, 0)" class="dark"></td>
+                        <td @click.prevent="sendChatMessage(4, 0)" class="light"></td>
+                        <td @click.prevent="sendChatMessage(5, 0)" class="dark"></td>
+                        <td @click.prevent="sendChatMessage(6, 0)" class="light"></td>
+                        <td @click.prevent="sendChatMessage(7, 0)" class="dark"></td>
+                    </tr>
+                    <tr>
+                        <th>7</th>
+                        <td @click.prevent="sendChatMessage(0, 1)" class="dark"></td>
+                        <td @click.prevent="sendChatMessage(1, 1)" class="light"></td>
+                        <td @click.prevent="sendChatMessage(2, 1)" class="dark"></td>
+                        <td @click.prevent="sendChatMessage(3, 1)" class="light"></td>
+                        <td @click.prevent="sendChatMessage(4, 1)" class="dark"></td>
+                        <td @click.prevent="sendChatMessage(5, 1)" class="light"></td>
+                        <td @click.prevent="sendChatMessage(6, 1)" class="dark"></td>
+                        <td @click.prevent="sendChatMessage(7, 1)" class="light"></td>
+                    </tr>
+                    <tr>
+                        <th>6</th>
+                        <td @click.prevent="sendChatMessage(0, 2)" class="light"></td>
+                        <td @click.prevent="sendChatMessage(1, 2)" class="dark"></td>
+                        <td @click.prevent="sendChatMessage(2, 2)" class="light"></td>
+                        <td @click.prevent="sendChatMessage(3, 2)" class="dark"></td>
+                        <td @click.prevent="sendChatMessage(4, 2)" class="light"></td>
+                        <td @click.prevent="sendChatMessage(5, 2)" class="dark"></td>
+                        <td @click.prevent="sendChatMessage(6, 2)" class="light"></td>
+                        <td @click.prevent="sendChatMessage(7, 2)" class="dark"></td>
+                    </tr>
+                    <tr>
+                        <th>5</th>
+                        <td @click.prevent="sendChatMessage(0, 3)" class="dark"></td>
+                        <td @click.prevent="sendChatMessage(1, 3)" class="light"></td>
+                        <td @click.prevent="sendChatMessage(2, 3)" class="dark"></td>
+                        <td @click.prevent="sendChatMessage(3, 3)" class="light"></td>
+                        <td @click.prevent="sendChatMessage(4, 3)" class="dark"></td>
+                        <td @click.prevent="sendChatMessage(5, 3)" class="light"></td>
+                        <td @click.prevent="sendChatMessage(6, 3)" class="dark"></td>
+                        <td @click.prevent="sendChatMessage(7, 3)" class="light"></td>
+                    </tr>
+                    <tr>
+                        <th>4</th>
+                        <td @click.prevent="sendChatMessage(0, 4)" class="light"></td>
+                        <td @click.prevent="sendChatMessage(1, 4)" class="dark"></td>
+                        <td @click.prevent="sendChatMessage(2, 4)" class="light"></td>
+                        <td @click.prevent="sendChatMessage(3, 4)" class="dark"></td>
+                        <td @click.prevent="sendChatMessage(4, 4)" class="light"></td>
+                        <td @click.prevent="sendChatMessage(5, 4)" class="dark"></td>
+                        <td @click.prevent="sendChatMessage(6, 4)" class="light"></td>
+                        <td @click.prevent="sendChatMessage(7, 4)" class="dark"></td>
+                    </tr>
+                    <tr>
+                        <th>3</th>
+                        <td @click.prevent="sendChatMessage(0, 5)" class="dark"></td>
+                        <td @click.prevent="sendChatMessage(1, 5)" class="light"></td>
+                        <td @click.prevent="sendChatMessage(2, 5)" class="dark"></td>
+                        <td @click.prevent="sendChatMessage(3, 5)" class="light"></td>
+                        <td @click.prevent="sendChatMessage(4, 5)" class="dark"></td>
+                        <td @click.prevent="sendChatMessage(5, 5)" class="light"></td>
+                        <td @click.prevent="sendChatMessage(6, 5)" class="dark"></td>
+                        <td @click.prevent="sendChatMessage(7, 5)" class="light"></td>
+                    </tr>
+                    <tr>
+                        <th>2</th>
+                        <td @click.prevent="sendChatMessage(0, 6)" class="light"></td>
+                        <td @click.prevent="sendChatMessage(1, 6)" class="dark"></td>
+                        <td @click.prevent="sendChatMessage(2, 6)" class="light"></td>
+                        <td @click.prevent="sendChatMessage(3, 6)" class="dark"></td>
+                        <td @click.prevent="sendChatMessage(4, 6)" class="light"></td>
+                        <td @click.prevent="sendChatMessage(5, 6)" class="dark"></td>
+                        <td @click.prevent="sendChatMessage(6, 6)" class="light"></td>
+                        <td @click.prevent="sendChatMessage(7, 6)" class="dark"></td>
+                    </tr>
+                    <tr>
+                        <th>1</th>
+                        <td @click.prevent="sendChatMessage(0, 7)" class="dark"></td>
+                        <td @click.prevent="sendChatMessage(1, 7)" class="light"></td>
+                        <td @click.prevent="sendChatMessage(2, 7)" class="dark"></td>
+                        <td @click.prevent="sendChatMessage(3, 7)" class="light"></td>
+                        <td @click.prevent="sendChatMessage(4, 7)" class="dark"></td>
+                        <td @click.prevent="sendChatMessage(5, 7)" class="light"></td>
+                        <td @click.prevent="sendChatMessage(6, 7)" class="dark"></td>
+                        <td @click.prevent="sendChatMessage(7, 7)" class="light"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+    </main>
+    <script src="main.js">
+    </script>
+</body>
+
+</html>

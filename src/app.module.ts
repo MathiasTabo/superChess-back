@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AlertController } from './alert.controller';
 import { AlertGateway } from './alert.gateway';
@@ -14,10 +15,11 @@ import RegisterModule from './register/register.module';
 
 @Module({
   imports: [
+    ConfigModule.forRoot(), 
     TypeOrmModule.forRoot({
       type: 'mongodb',
-      url: 'mongodb://localhost:27017/jsfullstack',
-      database: 'jsfullstack',
+      url: process.env.DB_URL + ':' + process.env.DB_PORT + '/' + process.env.DB_NAME,
+      database: process.env.DB_NAME,
       entities: [`${__dirname}/**/*.entity{.ts,.js}`],
       useUnifiedTopology: true,
       useNewUrlParser: true,

@@ -10,8 +10,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import Game from 'src/entity/game.entity';
 import Piece from 'src/entity/piece.entity';
 import { MongoRepository } from 'typeorm';
-import CreateGameDto from './dto/createGame.dto';
 import { isValidObjectId } from 'mongoose';
+import CreateGameDto from './dto/createGame.dto';
 import JoinUserDto from './dto/joinUser.dto';
 
 @Controller('game')
@@ -25,7 +25,7 @@ export default class GameController {
 
   @Get()
   async getGames(): Promise<Game[]> {
-    return await this.gameRepository.find({ state: 0 });
+    return this.gameRepository.find({ state: 0 });
   }
 
   @Post()
@@ -44,18 +44,18 @@ export default class GameController {
         'A user must have at least name and password defined',
       );
     }
-    var game:Game = await this.gameRepository.save(createGameDto);
-    var pieces: Piece[] = [];
-    for (var i:number = 0; i < 2; i++) {
+    const game:Game = await this.gameRepository.save(createGameDto);
+    const pieces: Piece[] = [];
+    for (let i:number = 0; i < 2; i++) {
       var color:boolean;
-      var yy:number = 1;
+      let yy:number = 1;
       color = false;
       if (i == 1) {
         yy = 6;
         color = true;
       }
-      for (var x = 0; x < 8; x++) {
-        const pion = new Piece({ "room": game.id.toString(), value: 0 });
+      for (let x = 0; x < 8; x++) {
+        const pion = new Piece({ room: game.id.toString(), value: 0 });
         pion.x = x;
         pion.y = yy;
         pion.color = color;
@@ -79,7 +79,7 @@ export default class GameController {
     game.id_string = joinUserDto.gameId.toString();
     game.players.push(joinUserDto.userId);
     //      game.playersColor.push(joinUserDto.color);
-    await this.gameRepository.update(game.id, game)
+    await this.gameRepository.update(game.id, game);
 
     return game;
   }

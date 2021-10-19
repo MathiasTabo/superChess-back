@@ -16,7 +16,6 @@ export default class Piece {
 
   @Column() color: boolean;
 
-
   constructor(piece?: Partial<Piece>) {
     Object.assign(this, piece);
   }

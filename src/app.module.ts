@@ -18,7 +18,7 @@ import RegisterModule from './register/register.module';
     ConfigModule.forRoot(), 
     TypeOrmModule.forRoot({
       type: 'mongodb',
-      url: process.env.DB_URL + ':' + process.env.DB_PORT + '/' + process.env.DB_NAME,
+      url: process.env.DB_URI,
       database: process.env.DB_NAME,
       entities: [`${__dirname}/**/*.entity{.ts,.js}`],
       useUnifiedTopology: true,

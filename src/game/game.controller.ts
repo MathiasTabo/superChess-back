@@ -5,7 +5,6 @@ import {
   Get,
   NotFoundException,
   Post,
-  Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import Game from 'src/entity/game.entity';
@@ -22,7 +21,7 @@ export default class GameController {
     private readonly gameRepository: MongoRepository<Game>,
     @InjectRepository(User)
     private readonly userRepository: MongoRepository<User>,
-    private logger: Logger = new Logger('GameController'),
+    // private logger: Logger = new Logger('GameControllers')
   ) { }
 
   @Get()
@@ -32,10 +31,10 @@ export default class GameController {
 
   @Post()
   async create(@Body() createGameDto: CreateGameDto): Promise<Game> {
-    this.logger.log(!createGameDto);
-    this.logger.log(!createGameDto.players);
-    this.logger.log(!createGameDto.state);
-    this.logger.log(!createGameDto.turn);
+    // this.logger.log(!createGameDto);
+    // this.logger.log(!createGameDto.players);
+    // this.logger.log(!createGameDto.state);
+    // this.logger.log(!createGameDto.turn);
     if (
       !createGameDto
       || !createGameDto.players

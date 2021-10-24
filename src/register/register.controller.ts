@@ -14,7 +14,7 @@ export default class RegisterController {
   constructor(
     @InjectRepository(User)
     private readonly usersRepository: MongoRepository<User>,
-  ) {}
+  ) { }
 
   @Post()
   async create(@Body() registerDto: RegisterDto): Promise<User> {
@@ -51,10 +51,15 @@ export default class RegisterController {
     if (userAlreadyExist) {
       throw new BadRequestException('The user name already exist');
     }
-    const pet = {
+    let user: User = new User({
       name: registerDto.userName,
       password: registerDto.password,
-    };
-    return this.usersRepository.save(new User(pet));
+    });
+    // this.logger.log(user.id);
+    // user.string_id = user.id.toString();
+    user = await this.usersRepository.save(user);
+    user.string_id = user.id.toString();
+    await this.usersRepository.update(user.id, user);
+    return user;
   }
 }

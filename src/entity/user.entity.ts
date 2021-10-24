@@ -10,6 +10,8 @@ export default class User {
 
   @Column() password: string;
 
+  @Column() string_id: string;
+
   @Column() friend: [string];
 
   constructor(user?: Partial<User>) {

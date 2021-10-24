@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import Game from 'src/entity/game.entity';
-import Piece from 'src/entity/piece.entity';
+import User from 'src/entity/user.entity';
 import { MongoRepository } from 'typeorm';
 import { isValidObjectId } from 'mongoose';
 import CreateGameDto from './dto/createGame.dto';
@@ -19,8 +19,9 @@ export default class GameController {
   constructor(
     @InjectRepository(Game)
     private readonly gameRepository: MongoRepository<Game>,
-    @InjectRepository(Piece)
-    private readonly pieceRepository: MongoRepository<Piece>,
+    @InjectRepository(User)
+    private readonly userRepository: MongoRepository<User>,
+    // private logger: Logger = new Logger('GameControllers')
   ) { }
 
   @Get()
@@ -30,10 +31,10 @@ export default class GameController {
 
   @Post()
   async create(@Body() createGameDto: CreateGameDto): Promise<Game> {
-    console.log(!createGameDto);
-    console.log(!createGameDto.players);
-    console.log(!createGameDto.state);
-    console.log(!createGameDto.turn);
+    // this.logger.log(!createGameDto);
+    // this.logger.log(!createGameDto.players);
+    // this.logger.log(!createGameDto.state);
+    // this.logger.log(!createGameDto.turn);
     if (
       !createGameDto
       || !createGameDto.players
@@ -41,29 +42,21 @@ export default class GameController {
       || createGameDto.state !== 0
     ) {
       throw new BadRequestException(
-        'A user must have at least name and password defined',
+        'A user must have at least players and state and turn defined',
       );
     }
-    const game:Game = await this.gameRepository.save(createGameDto);
-    const pieces: Piece[] = [];
-    for (let i:number = 0; i < 2; i++) {
-      var color:boolean;
-      let yy:number = 1;
-      color = false;
-      if (i == 1) {
-        yy = 6;
-        color = true;
-      }
-      for (let x = 0; x < 8; x++) {
-        const pion = new Piece({ room: game.id.toString(), value: 0 });
-        pion.x = x;
-        pion.y = yy;
-        pion.color = color;
-        pieces.push(pion);
-      }
+    const user = await this.userRepository.findOne({
+      string_id: createGameDto.players[0],
+    });
+    if (!user) {
+      throw new BadRequestException(
+        'User_id must be valid.',
+      );
     }
-    console.log(pieces);
-    await this.pieceRepository.save(pieces);
+    let game:Game = await this.gameRepository.save(createGameDto);
+    game = await this.gameRepository.findOne(game.id);
+    game.id_string = game.id.toString();
+    await this.gameRepository.update(game.id, game);
     return game;
   }
 
@@ -72,13 +65,20 @@ export default class GameController {
     if (!isValidObjectId(joinUserDto.gameId)) {
       throw new NotFoundException();
     }
+    const user = await this.userRepository.findOne({
+      string_id: joinUserDto.userId,
+    });
+    if (!user) {
+      throw new BadRequestException(
+        'User_id must be valid.',
+      );
+    }
     const game = await this.gameRepository.findOne(joinUserDto.gameId);
     if (!game) {
       throw new NotFoundException();
     }
-    game.id_string = joinUserDto.gameId.toString();
+    game.state = 1;
     game.players.push(joinUserDto.userId);
-    //      game.playersColor.push(joinUserDto.color);
     await this.gameRepository.update(game.id, game);
 
     return game;
